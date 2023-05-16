@@ -1,0 +1,58 @@
+#define BLYNK_TEMPLATE_ID "TMPL6MrWC3VeH"
+#define BLYNK_TEMPLATE_NAME "Kendali LED"
+#define BLYNK_AUTH_TOKEN "Vu_eefjaRugDV4TlBxAD_LeNlERS5_QO"
+#define BLYNK_PRINT Serial // inisialisasi komunikasi serial blynk
+#include <ESP8266WiFi.h> // include library
+#include <BlynkSimpleEsp8266.h> // include library
+#include <DHT.h> //Library untuk DHT
+
+char auth[] = "Vu_eefjaRugDV4TlBxAD_LeNlERS5_QO"; // masukan auth token yng didapatkan dari  
+char ssid[] = "TROJAN >:(_plus"; //masukan nama hotspot/Wifi yang digunakan
+char pass[] = "vydisfasamson005"; //password WiFi
+#define LED D7
+#define buzzer D6
+#define DHTPIN D2 //deklarasi pin D3 untuk output dari DHT11
+#define DHTTYPE DHT11 //Tipe DHT11
+DHT dht(DHTPIN, DHTTYPE);
+BlynkTimer timer;
+//pengiriman data untuk Virtual pin di blynk iot
+BLYNK_WRITE(V0)
+{
+int pinValue = param.asInt();
+digitalWrite(LED,pinValue);
+}
+BLYNK_WRITE(V1)
+{
+int pinValue1 = param.asInt();
+digitalWrite(buzzer,pinValue1);
+}
+//function untuk pengiriman sensor
+void sendSensor()
+{
+float t = dht.readTemperature(); //pembacaan sensor
+float h = dht.readHumidity();
+//menampilkan temperature pada Serial monitor
+Serial.print("% Temperature: ");
+Serial.print(t);
+Serial.println("C ");
+Serial.print("% Kelembaban: ");
+Serial.print(h);
+Serial.println("% ");
+Blynk.virtualWrite(V2, t); //mengirimkan data temperatur ke Virtual pin VO di Blynk Cloud
+Blynk.virtualWrite(V3, h); //mengirimkan data kelemaban ke Virtual pin V1 di Blynk Cloud
+}
+void setup()
+{
+// Debug console
+Serial.begin(9600);
+pinMode(LED,OUTPUT);
+pinMode(buzzer,OUTPUT);
+dht.begin(); //mengaktifkan DHT11
+timer.setInterval(1000L, sendSensor); //Mengaktifkan timer untuk pengiriman data 1000ms
+Blynk.begin(auth, ssid, pass); //memulai Blynk
+}
+void loop()
+{
+Blynk.run();
+timer.run(); //menjalankan timer
+}
